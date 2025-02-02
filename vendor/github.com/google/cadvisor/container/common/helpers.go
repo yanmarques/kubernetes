@@ -311,6 +311,9 @@ func listDirectories(dirpath string, parent string, recursive bool, output map[s
 		if os.IsNotExist(errors.Cause(err)) {
 			err = nil
 		}
+		if os.IsPermission(err) {
+			err = nil
+		}
 		return err
 	}
 	for _, dirent := range dirents {

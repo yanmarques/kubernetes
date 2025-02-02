@@ -22,16 +22,42 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 
 	"k8s.io/component-base/cli"
 	_ "k8s.io/component-base/logs/json/register"          // for JSON log format registration
 	_ "k8s.io/component-base/metrics/prometheus/clientgo" // for client metric registration
 	_ "k8s.io/component-base/metrics/prometheus/version"  // for version metric registration
+	pluginapi "k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1"
 	"k8s.io/kubernetes/cmd/kubelet/app"
+	"k8s.io/kubernetes/pkg/config"
+	"k8s.io/kubernetes/pkg/kubelet"
+	"k8s.io/kubernetes/pkg/kubelet/apis/config/v1beta1"
 )
 
 func main() {
+	path, ok := os.LookupEnv("KUBELET_USERSPACE_ROOT_DIR")
+	if !ok {
+		fmt.Println("[ERROR] Missing environment variable 'KUBELET_USERSPACE_ROOT_DIR'")
+		os.Exit(2)
+	}
+	normalizedPath, err := filepath.Abs(path)
+	if err != nil {
+		fmt.Printf("[ERROR] There is something wrong with provided 'KUBELET_USERSPACE_ROOT_DIR', given=%s error=%s\n", path, err)
+		os.Exit(2)
+	}
+	config.UserspaceRootDir = normalizedPath
+
+	v1beta1.DefaultVolumePluginDir = config.UserspaceRootDir + "/kubelet-plugins/volume/exec"
+	v1beta1.DefaultPodLogsDir = config.UserspaceRootDir + "/var/log"
+
+	kubelet.DefaultContainerLogsDir = config.UserspaceRootDir + "/var/log"
+
+	pluginapi.DevicePluginPath = config.UserspaceRootDir + "/device-plugins/"
+	pluginapi.KubeletSocket = pluginapi.DevicePluginPath + "kubelet.sock"
+
 	command := app.NewKubeletCommand()
 	code := cli.Run(command)
 	os.Exit(code)

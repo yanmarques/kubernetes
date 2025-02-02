@@ -28,13 +28,17 @@ import (
 	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
 	staticpodutil "k8s.io/kubernetes/cmd/kubeadm/app/util/staticpod"
+	"k8s.io/kubernetes/pkg/config"
+)
+
+var (
+	defaultFlexvolumeDirVolumePath = config.UserspaceRootDir + "/kubelet-plugins/volume/exec"
 )
 
 const (
-	caCertsVolumeName              = "ca-certs"
-	caCertsVolumePath              = "/etc/ssl/certs"
-	flexvolumeDirVolumeName        = "flexvolume-dir"
-	defaultFlexvolumeDirVolumePath = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec"
+	caCertsVolumeName       = "ca-certs"
+	caCertsVolumePath       = "/etc/ssl/certs"
+	flexvolumeDirVolumeName = "flexvolume-dir"
 )
 
 // caCertsExtraVolumePaths specifies the paths that can be conditionally mounted into the apiserver and controller-manager containers

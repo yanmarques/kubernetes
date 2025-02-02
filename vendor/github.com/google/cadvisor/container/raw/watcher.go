@@ -123,6 +123,9 @@ func (w *rawContainerWatcher) watchDirectory(events chan watcher.ContainerEvent,
 	}
 	alreadyWatching, err := w.watcher.AddWatch(containerName, dir)
 	if err != nil {
+		if os.IsPermission(err) {
+			return false, nil
+		}
 		return alreadyWatching, err
 	}
 

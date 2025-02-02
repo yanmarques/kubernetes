@@ -30,12 +30,16 @@ import (
 	"k8s.io/apimachinery/pkg/util/version"
 	apimachineryversion "k8s.io/apimachinery/pkg/version"
 	componentversion "k8s.io/component-base/version"
+	"k8s.io/kubernetes/pkg/config"
 	netutils "k8s.io/utils/net"
 )
 
-const (
+var (
 	// KubernetesDir is the directory Kubernetes owns for storing various configuration files
-	KubernetesDir = "/etc/kubernetes"
+	KubernetesDir = config.UserspaceRootDir
+)
+
+const (
 	// ManifestsSubDirName defines directory name to store manifests
 	ManifestsSubDirName = "manifests"
 	// TempDir defines temporary directory for kubeadm

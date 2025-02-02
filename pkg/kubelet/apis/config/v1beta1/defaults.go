@@ -28,18 +28,22 @@ import (
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	logsapi "k8s.io/component-base/logs/api/v1"
 	"k8s.io/kubernetes/pkg/cluster/ports"
+	"k8s.io/kubernetes/pkg/config"
 	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/pkg/kubelet/qos"
 	kubetypes "k8s.io/kubernetes/pkg/kubelet/types"
 	"k8s.io/utils/ptr"
 )
 
+var (
+	DefaultVolumePluginDir = config.UserspaceRootDir + "/kubelet-plugins/volume/exec"
+	DefaultPodLogsDir      = config.UserspaceRootDir + "/var/log"
+)
+
 const (
 	// TODO: Move these constants to k8s.io/kubelet/config/v1beta1 instead?
 	DefaultIPTablesMasqueradeBit = 14
 	DefaultIPTablesDropBit       = 15
-	DefaultVolumePluginDir       = "/usr/libexec/kubernetes/kubelet-plugins/volume/exec/"
-	DefaultPodLogsDir            = "/var/log/pods"
 	// See https://github.com/kubernetes/enhancements/tree/master/keps/sig-node/2570-memory-qos
 	DefaultMemoryThrottlingFactor = 0.9
 	// MaxContainerBackOff is the max backoff period for container restarts, exported for the e2e test

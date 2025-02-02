@@ -16,6 +16,20 @@ limitations under the License.
 
 package v1beta1
 
+import (
+	"k8s.io/kubernetes/pkg/config"
+)
+
+var (
+	// DevicePluginPath is the folder the Device Plugin is expecting sockets to be on
+	// Only privileged pods have access to this path
+	// Note: Placeholder until we find a "standard path"
+	DevicePluginPath = config.UserspaceRootDir + "/device-plugins/"
+
+	// KubeletSocket is the path of the Kubelet registry socket
+	KubeletSocket = DevicePluginPath + "kubelet.sock"
+)
+
 const (
 	// Healthy means that the device is healthy
 	Healthy = "Healthy"
@@ -24,13 +38,6 @@ const (
 
 	// Version means current version of the API supported by kubelet
 	Version = "v1beta1"
-	// DevicePluginPath is the folder the Device Plugin is expecting sockets to be on
-	// Only privileged pods have access to this path
-	// Note: Placeholder until we find a "standard path"
-	DevicePluginPath = "/var/lib/kubelet/device-plugins/"
-	// KubeletSocket is the path of the Kubelet registry socket
-	KubeletSocket = DevicePluginPath + "kubelet.sock"
-
 	// DevicePluginPathWindows Avoid failed to run Kubelet: bad socketPath,
 	// must be an absolute path: /var/lib/kubelet/device-plugins/kubelet.sock
 	// https://github.com/kubernetes/kubernetes/issues/93262

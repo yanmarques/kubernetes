@@ -68,7 +68,7 @@ import (
 	"k8s.io/kubernetes/pkg/kubelet/status"
 	"k8s.io/kubernetes/pkg/kubelet/util/swap"
 	schedulerframework "k8s.io/kubernetes/pkg/scheduler/framework"
-	"k8s.io/kubernetes/pkg/util/oom"
+	// "k8s.io/kubernetes/pkg/util/oom"
 )
 
 // A non-user container tracked by the Kubelet.
@@ -403,12 +403,12 @@ const (
 // depending upon the specified option, it will either warn, error, or modify the kernel tunable flags
 func setupKernelTunables(option KernelTunableBehavior) error {
 	desiredState := map[string]int{
-		utilsysctl.VMOvercommitMemory: utilsysctl.VMOvercommitMemoryAlways,
-		utilsysctl.VMPanicOnOOM:       utilsysctl.VMPanicOnOOMInvokeOOMKiller,
-		utilsysctl.KernelPanic:        utilsysctl.KernelPanicRebootTimeout,
-		utilsysctl.KernelPanicOnOops:  utilsysctl.KernelPanicOnOopsAlways,
-		utilsysctl.RootMaxKeys:        utilsysctl.RootMaxKeysSetting,
-		utilsysctl.RootMaxBytes:       utilsysctl.RootMaxBytesSetting,
+		// utilsysctl.VMOvercommitMemory: utilsysctl.VMOvercommitMemoryAlways,
+		// utilsysctl.VMPanicOnOOM:       utilsysctl.VMPanicOnOOMInvokeOOMKiller,
+		// utilsysctl.KernelPanic:        utilsysctl.KernelPanicRebootTimeout,
+		// utilsysctl.KernelPanicOnOops:  utilsysctl.KernelPanicOnOopsAlways,
+		// utilsysctl.RootMaxKeys:        utilsysctl.RootMaxKeysSetting,
+		// utilsysctl.RootMaxBytes:       utilsysctl.RootMaxBytesSetting,
 	}
 
 	sysctl := utilsysctl.New()
@@ -468,10 +468,10 @@ func (cm *containerManagerImpl) setupNode(activePods ActivePodsFunc) error {
 		if err := cm.createNodeAllocatableCgroups(); err != nil {
 			return err
 		}
-		err = cm.qosContainerManager.Start(cm.GetNodeAllocatableAbsolute, activePods)
-		if err != nil {
-			return fmt.Errorf("failed to initialize top level QOS containers: %v", err)
-		}
+		// err = cm.qosContainerManager.Start(cm.GetNodeAllocatableAbsolute, activePods)
+		// if err != nil {
+		// 	return fmt.Errorf("failed to initialize top level QOS containers: %v", err)
+		// }
 	}
 
 	// Enforce Node Allocatable (if required)
@@ -733,46 +733,47 @@ func isProcessRunningInHost(pid int) (bool, error) {
 }
 
 func ensureProcessInContainerWithOOMScore(pid int, oomScoreAdj int, manager cgroups.Manager) error {
-	if runningInHost, err := isProcessRunningInHost(pid); err != nil {
-		// Err on the side of caution. Avoid moving the docker daemon unless we are able to identify its context.
-		return err
-	} else if !runningInHost {
-		// Process is running inside a container. Don't touch that.
-		klog.V(2).InfoS("PID is not running in the host namespace", "pid", pid)
-		return nil
-	}
-
-	var errs []error
-	if manager != nil {
-		cont, err := getContainer(pid)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("failed to find container of PID %d: %v", pid, err))
-		}
-
-		name := ""
-		cgroups, err := manager.GetCgroups()
-		if err != nil {
-			errs = append(errs, fmt.Errorf("failed to get cgroups for %d: %v", pid, err))
-		} else {
-			name = cgroups.Name
-		}
-
-		if cont != name {
-			err = manager.Apply(pid)
-			if err != nil {
-				errs = append(errs, fmt.Errorf("failed to move PID %d (in %q) to %q: %v", pid, cont, name, err))
-			}
-		}
-	}
-
-	// Also apply oom-score-adj to processes
-	oomAdjuster := oom.NewOOMAdjuster()
-	klog.V(5).InfoS("Attempting to apply oom_score_adj to process", "oomScoreAdj", oomScoreAdj, "pid", pid)
-	if err := oomAdjuster.ApplyOOMScoreAdj(pid, oomScoreAdj); err != nil {
-		klog.V(3).InfoS("Failed to apply oom_score_adj to process", "oomScoreAdj", oomScoreAdj, "pid", pid, "err", err)
-		errs = append(errs, fmt.Errorf("failed to apply oom score %d to PID %d: %v", oomScoreAdj, pid, err))
-	}
-	return utilerrors.NewAggregate(errs)
+	return nil
+	// if runningInHost, err := isProcessRunningInHost(pid); err != nil {
+	// 	// Err on the side of caution. Avoid moving the docker daemon unless we are able to identify its context.
+	// 	return err
+	// } else if !runningInHost {
+	// 	// Process is running inside a container. Don't touch that.
+	// 	klog.V(2).InfoS("PID is not running in the host namespace", "pid", pid)
+	// 	return nil
+	// }
+	//
+	// var errs []error
+	// if manager != nil {
+	// 	cont, err := getContainer(pid)
+	// 	if err != nil {
+	// 		errs = append(errs, fmt.Errorf("failed to find container of PID %d: %v", pid, err))
+	// 	}
+	//
+	// 	name := ""
+	// 	cgroups, err := manager.GetCgroups()
+	// 	if err != nil {
+	// 		errs = append(errs, fmt.Errorf("failed to get cgroups for %d: %v", pid, err))
+	// 	} else {
+	// 		name = cgroups.Name
+	// 	}
+	//
+	// 	if cont != name {
+	// 		err = manager.Apply(pid)
+	// 		if err != nil {
+	// 			errs = append(errs, fmt.Errorf("failed to move PID %d (in %q) to %q: %v", pid, cont, name, err))
+	// 		}
+	// 	}
+	// }
+	//
+	// // Also apply oom-score-adj to processes
+	// oomAdjuster := oom.NewOOMAdjuster()
+	// klog.V(5).InfoS("Attempting to apply oom_score_adj to process", "oomScoreAdj", oomScoreAdj, "pid", pid)
+	// if err := oomAdjuster.ApplyOOMScoreAdj(pid, oomScoreAdj); err != nil {
+	// 	klog.V(3).InfoS("Failed to apply oom_score_adj to process", "oomScoreAdj", oomScoreAdj, "pid", pid, "err", err)
+	// 	errs = append(errs, fmt.Errorf("failed to apply oom score %d to PID %d: %v", oomScoreAdj, pid, err))
+	// }
+	// return utilerrors.NewAggregate(errs)
 }
 
 // getContainer returns the cgroup associated with the specified pid.

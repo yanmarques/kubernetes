@@ -17,7 +17,9 @@ package containerd
 import (
 	"flag"
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -58,8 +60,20 @@ func (f *containerdFactory) String() string {
 	return k8sContainerdNamespace
 }
 
-func (f *containerdFactory) NewContainerHandler(name string, metadataEnvAllowList []string, inHostNamespace bool) (handler container.ContainerHandler, err error) {
-	client, err := Client(*ArgContainerdEndpoint, *ArgContainerdNamespace)
+func buildClient() (Client, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	return Client(filepath.Join(dir, "containerd.sock"), *ArgContainerdNamespace)
+}
+
+func (f *containerdFactory) NewContainerHandler(
+	name string,
+	metadataEnvAllowList []string,
+	inHostNamespace bool,
+) (handler container.ContainerHandler, err error) {
+	client, err := buildClient()
 	if err != nil {
 		return
 	}
@@ -126,8 +140,12 @@ func (f *containerdFactory) DebugInfo() map[string][]string {
 }
 
 // Register root container before running this function!
-func Register(factory info.MachineInfoFactory, fsInfo fs.FsInfo, includedMetrics container.MetricSet) error {
-	client, err := Client(*ArgContainerdEndpoint, *ArgContainerdNamespace)
+func Register(
+	factory info.MachineInfoFactory,
+	fsInfo fs.FsInfo,
+	includedMetrics container.MetricSet,
+) error {
+	client, err := buildClient()
 	if err != nil {
 		return fmt.Errorf("unable to create containerd client: %v", err)
 	}

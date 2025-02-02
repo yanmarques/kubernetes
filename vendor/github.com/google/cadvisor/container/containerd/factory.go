@@ -60,7 +60,7 @@ func (f *containerdFactory) String() string {
 	return k8sContainerdNamespace
 }
 
-func buildClient() (Client, error) {
+func buildClient() (ContainerdClient, error) {
 	dir, err := os.Getwd()
 	if err != nil {
 		return nil, err

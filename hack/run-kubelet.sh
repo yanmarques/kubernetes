@@ -6,7 +6,7 @@ Usage: $0 [-h] -l /path/to/local/directory
 Run userspace kubelet.
 
 Required arguments:
-  -l PATH   Local directory to save all userspace kubelet configuration. Important: the containerd.sock must exist inside this directory.
+  -l PATH   Local directory to save all userspace kubelet configuration.
 
 Options:
   -h        Show this message.
@@ -555,7 +555,7 @@ if $debug; then
     --register-node=true \
     --kubeconfig "$rootdir/kubelet.conf" \
     --pod-manifest-path "$rootdir/manifests" \
-    --container-runtime-endpoint unix://"$rootdir"/containerd.sock
+    --container-runtime-endpoint unix://$(pwd)/containerd.sock
 else
   exec kubelet \
     --cgroups-per-qos=false \
@@ -563,7 +563,7 @@ else
     --register-node=true \
     --kubeconfig "$rootdir/kubelet.conf" \
     --pod-manifest-path "$rootdir/manifests" \
-    --container-runtime-endpoint unix://"$rootdir"/containerd.sock \
+    --container-runtime-endpoint unix://$(pwd)/containerd.sock \
     --resolv-conf "$rootdir"/resolv.conf \
     --v=5
 fi

@@ -17,10 +17,32 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"k8s.io/kubernetes/cmd/kubeadm/app"
+	kubeadmv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
+	kubeadmv1beta4 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta4"
 	kubeadmutil "k8s.io/kubernetes/cmd/kubeadm/app/util"
+	"k8s.io/kubernetes/pkg/config"
 )
 
 func main() {
+	path, ok := os.LookupEnv("KUBELET_USERSPACE_ROOT_DIR")
+	if !ok {
+		fmt.Println("[ERROR] Missing environment variable 'KUBELET_USERSPACE_ROOT_DIR'")
+		os.Exit(2)
+	}
+	normalizedPath, err := filepath.Abs(path)
+	if err != nil {
+		fmt.Printf("[ERROR] There is something wrong with provided 'KUBELET_USERSPACE_ROOT_DIR', given=%s error=%s\n", path, err)
+		os.Exit(2)
+	}
+	config.UserspaceRootDir = normalizedPath
+
+	kubeadmv1beta3.DefaultCertificatesDir = config.UserspaceRootDir + "/pki"
+	kubeadmv1beta4.DefaultCertificatesDir = config.UserspaceRootDir + "/pki"
+
 	kubeadmutil.CheckErr(app.Run())
 }

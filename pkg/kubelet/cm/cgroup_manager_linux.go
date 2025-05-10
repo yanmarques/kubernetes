@@ -235,21 +235,21 @@ func (m *cgroupCommon) libctCgroupConfig(in *CgroupConfig, needResources bool) *
 
 // Destroy destroys the specified cgroup
 func (m *cgroupCommon) Destroy(cgroupConfig *CgroupConfig) error {
-	start := time.Now()
-	defer func() {
-		metrics.CgroupManagerDuration.WithLabelValues("destroy").Observe(metrics.SinceInSeconds(start))
-	}()
+	// start := time.Now()
+	// defer func() {
+	// 	metrics.CgroupManagerDuration.WithLabelValues("destroy").Observe(metrics.SinceInSeconds(start))
+	// }()
 
-	libcontainerCgroupConfig := m.libctCgroupConfig(cgroupConfig, false)
-	manager, err := libcontainercgroupmanager.New(libcontainerCgroupConfig)
-	if err != nil {
-		return err
-	}
+	// libcontainerCgroupConfig := m.libctCgroupConfig(cgroupConfig, false)
+	// manager, err := libcontainercgroupmanager.New(libcontainerCgroupConfig)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Delete cgroups using libcontainers Managers Destroy() method
-	if err = manager.Destroy(); err != nil {
-		return fmt.Errorf("unable to destroy cgroup paths for cgroup %v : %v", cgroupConfig.Name, err)
-	}
+	// if err = manager.Destroy(); err != nil {
+	// 	return fmt.Errorf("unable to destroy cgroup paths for cgroup %v : %v", cgroupConfig.Name, err)
+	// }
 
 	return nil
 }

@@ -35,7 +35,6 @@ import (
 	"time"
 
 	cadvisorapi "github.com/google/cadvisor/info/v1"
-	inuserns "github.com/moby/sys/userns"
 	"github.com/opencontainers/selinux/go-selinux"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -76,6 +75,7 @@ import (
 	statsapi "k8s.io/kubelet/pkg/apis/stats/v1alpha1"
 	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
 	"k8s.io/kubernetes/pkg/api/v1/resource"
+	_config "k8s.io/kubernetes/pkg/config"
 	"k8s.io/kubernetes/pkg/features"
 	kubeletconfiginternal "k8s.io/kubernetes/pkg/kubelet/apis/config"
 	"k8s.io/kubernetes/pkg/kubelet/apis/config/v1beta1"
@@ -137,6 +137,11 @@ import (
 	"k8s.io/utils/clock"
 )
 
+var (
+	// DefaultContainerLogsDir is the location of container logs.
+	DefaultContainerLogsDir = _config.UserspaceRootDir + "/var/log"
+)
+
 const (
 	// Max amount of time to wait for the container runtime to come up.
 	maxWaitForContainerRuntime = 30 * time.Second
@@ -147,9 +152,6 @@ const (
 	// nodeReadyGracePeriod is the period to allow for before fast status update is
 	// terminated and container runtime not being ready is logged without verbosity guard.
 	nodeReadyGracePeriod = 120 * time.Second
-
-	// DefaultContainerLogsDir is the location of container logs.
-	DefaultContainerLogsDir = "/var/log/containers"
 
 	// MaxContainerBackOff is the max backoff period for container restarts, exported for the e2e test
 	MaxContainerBackOff = v1beta1.MaxContainerBackOff
@@ -524,22 +526,23 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		Namespace: "",
 	}
 
-	oomWatcher, err := oomwatcher.NewWatcher(kubeDeps.Recorder)
-	if err != nil {
-		if inuserns.RunningInUserNS() {
-			if utilfeature.DefaultFeatureGate.Enabled(features.KubeletInUserNamespace) {
-				// oomwatcher.NewWatcher returns "open /dev/kmsg: operation not permitted" error,
-				// when running in a user namespace with sysctl value `kernel.dmesg_restrict=1`.
-				klog.V(2).InfoS("Failed to create an oomWatcher (running in UserNS, ignoring)", "err", err)
-				oomWatcher = nil
-			} else {
-				klog.ErrorS(err, "Failed to create an oomWatcher (running in UserNS, Hint: enable KubeletInUserNamespace feature flag to ignore the error)")
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	}
+	var oomWatcher oomwatcher.Watcher
+	// oomWatcher, err := oomwatcher.NewWatcher(kubeDeps.Recorder)
+	// if err != nil {
+	// 	if inuserns.RunningInUserNS() {
+	// 		if utilfeature.DefaultFeatureGate.Enabled(features.KubeletInUserNamespace) {
+	// 			// oomwatcher.NewWatcher returns "open /dev/kmsg: operation not permitted" error,
+	// 			// when running in a user namespace with sysctl value `kernel.dmesg_restrict=1`.
+	// 			klog.V(2).InfoS("Failed to create an oomWatcher (running in UserNS, ignoring)", "err", err)
+	// 			oomWatcher = nil
+	// 		} else {
+	// 			klog.ErrorS(err, "Failed to create an oomWatcher (running in UserNS, Hint: enable KubeletInUserNamespace feature flag to ignore the error)")
+	// 			return nil, err
+	// 		}
+	// 	} else {
+	// 		return nil, err
+	// 	}
+	// }
 
 	clusterDNS := make([]net.IP, 0, len(kubeCfg.ClusterDNS))
 	for _, ipEntry := range kubeCfg.ClusterDNS {
@@ -1589,6 +1592,8 @@ func (kl *Kubelet) initializeModules(ctx context.Context) error {
 		return err
 	}
 
+	ContainerLogsDir = _config.UserspaceRootDir + "/var/log"
+
 	// If the container logs directory does not exist, create it.
 	if _, err := os.Stat(ContainerLogsDir); err != nil {
 		if err := kl.os.MkdirAll(ContainerLogsDir, 0755); err != nil {
@@ -1986,10 +1991,10 @@ func (kl *Kubelet) SyncPod(ctx context.Context, updateType kubetypes.SyncPodType
 				if err := kl.containerManager.UpdateQOSCgroups(); err != nil {
 					klog.V(2).InfoS("Failed to update QoS cgroups while syncing pod", "pod", klog.KObj(pod), "err", err)
 				}
-				if err := pcm.EnsureExists(pod); err != nil {
-					kl.recorder.Eventf(pod, v1.EventTypeWarning, events.FailedToCreatePodContainer, "unable to ensure pod container exists: %v", err)
-					return false, fmt.Errorf("failed to ensure that the pod: %v cgroups exist and are correctly applied: %v", pod.UID, err)
-				}
+				// if err := pcm.EnsureExists(pod); err != nil {
+				// 	kl.recorder.Eventf(pod, v1.EventTypeWarning, events.FailedToCreatePodContainer, "unable to ensure pod container exists: %v", err)
+				// 	return false, fmt.Errorf("failed to ensure that the pod: %v cgroups exist and are correctly applied: %v", pod.UID, err)
+				// }
 			}
 		}
 	}

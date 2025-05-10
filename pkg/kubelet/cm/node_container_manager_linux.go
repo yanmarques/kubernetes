@@ -58,10 +58,10 @@ func (cm *containerManagerImpl) createNodeAllocatableCgroups() error {
 	if cm.cgroupManager.Exists(cgroupConfig.Name) {
 		return nil
 	}
-	if err := cm.cgroupManager.Create(cgroupConfig); err != nil {
-		klog.ErrorS(err, "Failed to create cgroup", "cgroupName", cm.cgroupRoot)
-		return err
-	}
+	// if err := cm.cgroupManager.Create(cgroupConfig); err != nil {
+	// 	klog.ErrorS(err, "Failed to create cgroup", "cgroupName", cm.cgroupRoot)
+	// 	return err
+	// }
 	return nil
 }
 

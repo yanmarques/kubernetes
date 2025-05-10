@@ -38,6 +38,7 @@ import (
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	pluginapi "k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1"
 	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
+	_config "k8s.io/kubernetes/pkg/config"
 	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/pkg/kubelet/checkpointmanager"
 	"k8s.io/kubernetes/pkg/kubelet/checkpointmanager/errors"
@@ -165,7 +166,8 @@ func newManagerImpl(socketPath string, topology []cadvisorapi.Node, topologyAffi
 	}
 
 	manager.server = server
-	manager.checkpointdir, _ = filepath.Split(server.SocketPath())
+	// manager.checkpointdir, _ = filepath.Split(server.SocketPath())
+	manager.checkpointdir = _config.UserspaceRootDir
 
 	// The following structures are populated with real implementations in manager.Start()
 	// Before that, initializes them to perform no-op operations.

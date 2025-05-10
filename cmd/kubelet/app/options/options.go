@@ -34,6 +34,7 @@ import (
 	"k8s.io/kubelet/config/v1beta1"
 	kubeletapis "k8s.io/kubelet/pkg/apis"
 	"k8s.io/kubernetes/pkg/cluster/ports"
+	_config "k8s.io/kubernetes/pkg/config"
 	kubeletconfig "k8s.io/kubernetes/pkg/kubelet/apis/config"
 	kubeletscheme "k8s.io/kubernetes/pkg/kubelet/apis/config/scheme"
 	kubeletconfigvalidation "k8s.io/kubernetes/pkg/kubelet/apis/config/validation"
@@ -41,7 +42,7 @@ import (
 	utilflag "k8s.io/kubernetes/pkg/util/flag"
 )
 
-const defaultRootDir = "/var/lib/kubelet"
+var defaultRootDir = _config.UserspaceRootDir
 
 // KubeletFlags contains configuration flags for the Kubelet.
 // A configuration field should go in KubeletFlags instead of KubeletConfiguration if any of these are true:
@@ -137,9 +138,11 @@ type KubeletFlags struct {
 
 // NewKubeletFlags will create a new KubeletFlags with default values
 func NewKubeletFlags() *KubeletFlags {
+	defaultRootDir = _config.UserspaceRootDir
+
 	return &KubeletFlags{
 		ContainerRuntimeOptions: *NewContainerRuntimeOptions(),
-		CertDirectory:           "/var/lib/kubelet/pki",
+		CertDirectory:           _config.UserspaceRootDir + "/pki",
 		RootDirectory:           filepath.Clean(defaultRootDir),
 		MaxContainerCount:       -1,
 		MaxPerPodContainerCount: 1,
